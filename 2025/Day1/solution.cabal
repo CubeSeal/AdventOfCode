@@ -1,0 +1,14 @@
+cabal-version:      3.0
+name:               my-advent-project
+version:            0.1.0.0
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+    default-language: GHC2021
+
+executable solution
+    import:           warnings
+    main-is:          solution.hs
+    build-depends:    base
+    hs-source-dirs:   .
