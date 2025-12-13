@@ -1,9 +1,7 @@
 {
-  description = "A very basic flake";
+  description = "Pinned version of dependencies";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
   outputs = { self, nixpkgs }:
   let
