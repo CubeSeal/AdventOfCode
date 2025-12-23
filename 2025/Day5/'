@@ -1,0 +1,69 @@
+module Main where
+
+import Data.Maybe (Maybe(..), mapMaybe, fromMaybe)
+import Data.Char (digitToInt)
+import Data.Traversable (for)
+import Data.List (foldl', sortOn, uncons)
+import Text.Read (readMaybe)
+
+data Range a = Range a a
+  deriving Show
+
+type DataBase = [Range Int]
+type QueryValues = [Int]
+
+main :: IO ()
+main = do
+  (rawDB, rawQuery) <- break (== "") . lines <$> readFile "test_input"
+  let
+    parsedDB = fromMaybe undefined $ parseMinMaxList rawDB
+    parsedQuery = map read (drop 1 rawQuery)
+  print $ cleanDB $ sortedDB parsedDB
+  print parsedQuery
+  print $ part1 parsedDB parsedQuery
+
+-- Similar to span and break, but just matches with (==) delim and consumes delimiter
+splitOnce :: Char -> String -> (String, String)
+splitOnce delim str = go delim str ""
+  where
+  go _ "" accum = (reverse accum, "")
+  go delim (x:xs) accum
+    | x == delim = (reverse accum, xs)
+    | otherwise = go delim xs $ x:accum
+
+splitOn :: Char -> String -> [String]
+splitOn _ "" = []
+splitOn delim str = fst splitStr : splitOn delim (snd splitStr)
+  where
+      splitStr = splitOnce delim str
+
+parseMinMaxList :: [String] -> Maybe DataBase
+parseMinMaxList [] = Nothing
+parseMinMaxList strings = for strings parseString
+  where
+    parseString string = do
+      let
+        (rawMin, rawMax) = splitOnce '-' string
+      intMin <- readMaybe rawMin
+      intMax <- readMaybe rawMax
+      return $ range intMin intMax
+
+part1 :: DataBase -> QueryValues -> Int
+part1 db query = sum $ map (fromEnum . valueIsFresh) query
+  where
+    supremum v = fst <$> uncons (dropWhile (\(Range x y) -> f x < v) $ cleanDB $ sortedDB db)
+    valueIsFresh v = case supremum v of
+      Nothing -> False
+      Just (Min _) -> False
+      Just (Max _) -> True
+
+f (Min a) = a
+f (Max a) = a
+
+sortedDB = sortOn f
+
+cleanDB [] = []
+cleanDB [x] = [x]
+cleanDB (Range l1 h1: Range l2 h2 : ls)
+  | h1 > l2 = cleanDB (Range l1 h2: ls)
+  | otherwise = Range l1 h1 : cleanDB (Range l2 h2 : ls)
